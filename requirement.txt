@@ -1,0 +1,8 @@
+flask
+line-bot-sdk
+google-generativeai
+langchain-community
+langchain-text-splitters
+pypdf
+python-dotenv
+requests
