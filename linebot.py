@@ -14,7 +14,7 @@ app = Flask(__name__)
 handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 configuration = Configuration(access_token=os.getenv("CHANNEL_ACCESS_TOKEN"))
 
-# เก็บ qa_chain ของแต่ละ user
+# store each user's chain in memory
 user_chains = {}
 
 @app.route("/webhook", methods=["POST"])
@@ -27,25 +27,34 @@ def webhook():
         abort(400)
     return "OK"
 
+# store chunks for each user as a list
+user_chunks = {}
+
 @handler.add(MessageEvent, message=FileMessageContent)
 def handle_file(event):
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
+        user_id = event.source.user_id
         
-        # ดาวน์โหลดไฟล์จาก Line
         message_id = event.message.id
         headers = {"Authorization": f"Bearer {os.getenv('CHANNEL_ACCESS_TOKEN')}"}
         res = requests.get(f"https://api-data.line.me/v2/bot/message/{message_id}/content", headers=headers)
         
-        # Process PDF
         pdf_file = BytesIO(res.content)
         pdf_file.name = "file.pdf"
-        chunks = process_pdf(pdf_file)
-        user_chains[event.source.user_id] = create_qa_chain(chunks)
+        new_chunks = process_pdf(pdf_file)
         
+        if user_id not in user_chunks:
+            user_chunks[user_id] = []
+        user_chunks[user_id].extend(new_chunks)
+        
+        # create new chain with all chunks
+        user_chains[user_id] = create_qa_chain(user_chunks[user_id])
+        
+        count = len(user_chunks[user_id])
         line_bot_api.reply_message(ReplyMessageRequest(
             reply_token=event.reply_token,
-            messages=[TextMessage(text="✅ อัปโหลด PDF สำเร็จ! ถามคำถามได้เลยครับ")]
+            messages=[TextMessage(text=f"✅ อัปโหลดสำเร็จ! ตอนนี้มี {count} chunks จากทุกไฟล์ที่ส่งมา ถามได้เลยครับ")]
         ))
 
 @handler.add(MessageEvent, message=TextMessageContent)
