@@ -21,7 +21,13 @@ def create_qa_chain(chunks):
 
     def answer(question):
         response = model.generate_content(
-            f"Context:\n{context}\n\nQuestion: {question}\n\nAnswer based on the context only."
+            f"""You are a helpful document assistant. Answer based on the context only.
+            IMPORTANT: Do NOT use markdown formatting. No **bold**, no *italic*, no bullet points with *.
+            Use plain text only. Use numbers (1. 2. 3.) for lists instead.
+
+            Context: {context}
+
+            Question: {question}"""
         )
         return response.text
 

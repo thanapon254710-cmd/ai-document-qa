@@ -54,7 +54,7 @@ def handle_file(event):
         count = len(user_chunks[user_id])
         line_bot_api.reply_message(ReplyMessageRequest(
             reply_token=event.reply_token,
-            messages=[TextMessage(text=f"✅ อัปโหลดสำเร็จ! ตอนนี้มี {count} chunks จากทุกไฟล์ที่ส่งมา ถามได้เลยครับ")]
+            messages=[TextMessage(text=f"✅ อัปโหลดสำเร็จ! ถามได้เลยครับ")]
         ))
 
 @handler.add(MessageEvent, message=TextMessageContent)
