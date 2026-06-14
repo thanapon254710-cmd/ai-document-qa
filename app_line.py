@@ -7,6 +7,7 @@ from utils import process_pdf, create_qa_chain
 import os, requests
 from dotenv import load_dotenv
 from io import BytesIO
+import time
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
@@ -64,6 +65,9 @@ def handle_text(event):
     
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
+        
+        # wait a bit to ensure the chain is ready if user just uploaded a file
+        time.sleep(1)
         
         if user_id not in user_chains:
             reply = "กรุณาส่งไฟล์ PDF ก่อนนะครับ 📄"
